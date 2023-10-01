@@ -44,6 +44,7 @@ class Magazine{
 class Journal{
     public:
         string journalName;
+        int searchCount;
         Journal(){}
 };
 
@@ -297,6 +298,7 @@ class Library{
                         for(int j=0; j<journalCount; j++){
                             if(journalArray[j].journalName == itemName || journalArray[j].journalName == itemPublication){
                                 bookFound = 1;
+                                journalArray[j].searchCount = journalArray[j].searchCount > 0 ? (journalArray[j].searchCount + 1) : 1;
                                 cout << "The journal is availabl." << endl;
                                 cout << "Title: " << journalArray[j].journalName << endl;
                                 cout << "Do you want to take this journal?";
@@ -401,6 +403,16 @@ class Library{
                 cout << "You are not authorized to view the list of users." << endl;
             }
         }
+        void mostRequestedJournal(){
+            int mostUsed,max=INT_MIN;
+            for(int i=0; i<journalCount; i++){
+                if(journalArray[i].searchCount > max){
+                    max = journalArray[i].searchCount;
+                    mostUsed = i;
+                }
+            }
+            cout << "Institute will subscribe : " << journalArray[mostUsed].journalName << endl;
+        }
 };
 
 int main() {
@@ -414,7 +426,8 @@ int main() {
         cout << "3. To View Users" << endl;
         cout << "4. To Borrow Books on Loan" << endl;
         cout << "5. To View the Records of Borrow on Loan" << endl;
-        cout << "6. For Exit" << endl;
+        cout << "6. To Check Most Requested Journal" << endl;
+        cout << "7. For Exit" << endl;
         cout << "Please enter the preference from the above list:"; 
         cin >> choice;
         switch(choice){
@@ -433,7 +446,10 @@ int main() {
             case 5: // Record
                 lb.viewRecord();
                 break;
-            case 6: // Exit
+            case 6: // Journal Subscription
+                lb.mostRequestedJournal();
+                break;
+            case 7: // Exit
                 return 0;
             default: // Wrong
                 cout << "You entered wrong choice." << endl;
