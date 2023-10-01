@@ -11,6 +11,8 @@ int userCount = 0;
 int bookCount = 0;
 int mgnCount = 0;
 int journalCount = 0;
+int ngbrLibCount = 0;
+int recordCount = 0;
 
 class User{
     public:
@@ -29,8 +31,6 @@ class Book{
         string author;
         string title;
         Book(){}
-        // Book(int id, int count, const string& isbn, const string& author, const string& title)
-        // : bookId(id), bookCount(count), isbn(isbn), author(author), title(title) {}
 };
 
 class Magazine{
@@ -39,16 +39,35 @@ class Magazine{
         string publication;
         double mgnPrice;
         Magazine(){}
-        // Magazine(const string& publication, double price)
-        // : publication(publication), mgnPrice(price) {}
 };
 
 class Journal{
     public:
         string journalName;
         Journal(){}
-        // Journal(const string& name)
-        // : journalName(name) {}
+};
+
+class NeighbourLibraries{
+    public:
+        string bookName;
+        string ISBN;
+        string author;
+        int bookCount;
+        int rackNo;
+        string libraryName;
+        string address;
+        NeighbourLibraries(){}
+        NeighbourLibraries(const string& bookName, const string& ISBN, const string& author, int count, int rack, const string& library, const string& address)
+        : bookName(bookName), ISBN(ISBN), author(author), bookCount(count), rackNo(rack), libraryName(library), address(address) {}
+};
+
+class Record{
+    public:
+        string userName;
+        string borrowLocation;
+        string bookName;
+        string dueDate;
+        string borrowDate;
 };
 
 class Library{
@@ -57,13 +76,15 @@ class Library{
         Book bookArray[maxSize];
         Magazine mgnArray[maxSize];
         Journal journalArray[maxSize];
+        NeighbourLibraries neighbourLibArray[maxSize];
+        Record recordArray[maxSize];
         Library() {
-            // bookArray[bookCount++] = Book(1, 10, "1234567", "J K Shah", "INDIAN");
-            // bookArray[bookCount++] = Book(2, 2, "1234588", "J K Rolling", "Herry Potter");
-            // mgnArray[mgnCount++] = Magazine("High Five", 234.45);
-            // mgnArray[mgnCount++] = Magazine("Hello Five", 343.34);
-            // journalArray[journalCount++] = Journal("IEEE 2006");
-            // journalArray[journalCount++] = Journal("IEEE 2008");
+            neighbourLibArray[ngbrLibCount++] = NeighbourLibraries("INDIAN", "1234567", "J K Shah", 1, 10, "SVK Library", "Saket");
+            neighbourLibArray[ngbrLibCount++] = NeighbourLibraries("Ramcharit Manas", "1234548", "Valmiki", 3, 10, "SVK Library", "Saket");
+            neighbourLibArray[ngbrLibCount++] = NeighbourLibraries("Mahabharat", "1234346", "VedVyas", 5, 3, "Guru Nanak Library", "Okhla");
+            neighbourLibArray[ngbrLibCount++] = NeighbourLibraries("Panchtantra", "1234549", "H G Bist", 12, 2, "Public Library", "Noida");
+            neighbourLibArray[ngbrLibCount++] = NeighbourLibraries("Himalayan", "1234534", "J K Shah", 1, 8, "Public Library", "Noida");
+            neighbourLibArray[ngbrLibCount++] = NeighbourLibraries("Ek Safar", "1234472", "H G Shah", 67, 3, "SVK Library", "Saket");
 
             ifstream data;
             string temp;
@@ -300,6 +321,86 @@ class Library{
                 cout << "User not found. Either entered user name is incorrect or not a registered user." << endl;
             }
         }
+        void borrowOnLoan(){
+            string userName;
+            int userFound = 0, bookFound = 0;
+            cout << "Please enter your name:";
+            cin.ignore();
+            getline(cin, userName);
+            for(int i=0; i<userCount; i++){
+                if (userArray[i].userName == userName){
+                    userFound = 1;
+                    string searchBy, itemName, itemAuthor, itemISBN, borrowYesNo;
+                    cout << "Do you want to search book by Name,Author or ISBN?";
+                    cin >> searchBy;
+                    cin.ignore(); 
+                    if (searchBy == "Name"){
+                        cout << "Enter the Name:";
+                        getline(cin, itemName);
+                    }
+                    else if (searchBy == "Author"){
+                        cout << "Enter the Author:";
+                        getline(cin, itemAuthor);
+                    }
+                    else if (searchBy == "ISBN"){
+                        cout << "Enter the ISBN:";
+                        cin >> itemISBN;
+                    }
+                    for(int j=0; j<ngbrLibCount; j++){
+                        if(((neighbourLibArray[j].bookName == itemName) || (neighbourLibArray[j].ISBN == itemISBN) || (neighbourLibArray[j].author == itemAuthor)) && neighbourLibArray[j].bookCount > 0){
+                            bookFound = 1;
+                            cout << "The book is available on Rack No. " << neighbourLibArray[j].rackNo << " in " << neighbourLibArray[j].libraryName << " at " << neighbourLibArray[j].address << endl;
+                            cout << "Title: " << neighbourLibArray[j].bookName << endl;
+                            cout << "Author: " << neighbourLibArray[j].author << endl;
+                            cout << "Do you want to borrow this book?";
+                            cin >> borrowYesNo;
+                            if (borrowYesNo == "Yes" || borrowYesNo == "yes"){
+                                neighbourLibArray[j].bookCount -= 1;
+                                recordArray[recordCount].userName = userArray[i].userName;
+                                recordArray[recordCount].bookName = neighbourLibArray[j].bookName;
+                                recordArray[recordCount].borrowLocation = "IIIT-Delhi";
+                                time_t currentTime = std::time(nullptr);
+                                tm* currentDateTime = std::localtime(&currentTime);
+                                int year = currentDateTime->tm_year + 1900; 
+                                int month = currentDateTime->tm_mon + 1;   
+                                int day = currentDateTime->tm_mday;   
+                                recordArray[recordCount].borrowDate = to_string(day)+"/"+to_string(month)+"/"+to_string(year);
+                                string dueDate = (userArray[i].userType == 0) ? (to_string((day+7)%30)+"/"+to_string((day+7)<=30?(month+1)%12:(month+2)%12)+"/"+to_string(((month+1)<=12 || (month+2)<=12)?year:year+1)) : to_string((day+7)%30)+"/"+to_string((day+7)<=30?(month+6)%12:(month+7)%12)+"/"+to_string(((month+6)<=12 || (month+7)<=12)?year:year+1);
+                                recordArray[recordCount].dueDate = dueDate;
+                                recordCount++;
+                                cout << "Due date for this book is: " << dueDate + "," << endl;
+                            }
+                            else
+                                break;
+                        }
+                    }
+                    if(bookFound == 0){
+                        cout << "Book not found." << endl;
+                    }              
+                }  
+            }
+            if(userFound == 0){
+                cout << "User not found. Either entered user name is incorrect or not a registered user." << endl;
+            }
+        }
+        void viewRecord(){
+            string userName;
+            int userFound = 0;
+            cout << "Please enter your name:";
+            cin.ignore();
+            getline(cin, userName);
+            for(int i=0; i<userCount; i++){
+                if (userArray[i].userName == userName && userArray[i].userType == 1){
+                    userFound = 1; 
+                    for(int j=0; j<recordCount; j++){
+                        cout << "User Name:" << recordArray[j].userName << "\tBook Name:" << recordArray[j].bookName << "\tBorrow Location:" << recordArray[j].borrowLocation << "\tBorrow Date:" << recordArray[j].borrowDate << "\tDue Date:" << recordArray[j].dueDate << endl; 
+                    }
+                }
+            }
+            if(userFound == 0){
+                cout << "You are not authorized to view the list of users." << endl;
+            }
+        }
 };
 
 int main() {
@@ -308,10 +409,12 @@ int main() {
     cout << "Welcome !!" << endl;
     while (true){
         cout << endl;
-        cout << "1. for User Registration" << endl;
-        cout << "2. to Borrow Book" << endl;
-        cout << "3. to View Users" << endl;
-        cout << "4. for Exit" << endl;
+        cout << "1. For User Registration" << endl;
+        cout << "2. To Borrow/Purchase Book" << endl;
+        cout << "3. To View Users" << endl;
+        cout << "4. To Borrow Books on Loan" << endl;
+        cout << "5. To View the Records of Borrow on Loan" << endl;
+        cout << "6. For Exit" << endl;
         cout << "Please enter the preference from the above list:"; 
         cin >> choice;
         switch(choice){
@@ -324,7 +427,13 @@ int main() {
             case 3: // Users
                 lb.showUsers();
                 break;
-            case 4: // Exit
+            case 4: // Loan
+                lb.borrowOnLoan();
+                break;
+            case 5: // Record
+                lb.viewRecord();
+                break;
+            case 6: // Exit
                 return 0;
             default: // Wrong
                 cout << "You entered wrong choice." << endl;
